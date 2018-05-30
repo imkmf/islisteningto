@@ -33,7 +33,10 @@ const tweet = (res, string) => {
   console.log('Posting tweet');
   client
     .post('statuses/update', {status: string})
-    .then(() => res.sendStatus(200))
+    .then(() => {
+      res.sendStatus(200);
+      res.end();
+    })
     .catch(function(error) {
       throw error;
     });
