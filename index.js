@@ -78,6 +78,8 @@ const parseXmlResponse = (res, {data}) => {
       tweet(res, string);
     } else {
       console.log('New track not found, skipping...');
+      res.sendStatus(200);
+      res.end();
     }
   });
 };
