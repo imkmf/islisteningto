@@ -19,7 +19,6 @@ const app = express();
 ].forEach(key => {
   if (!eval(key)) {
     console.error(`Missing ${key} in env`);
-    process.exit(1);
   }
 });
 
@@ -89,5 +88,4 @@ app.get('/', (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
