@@ -31,6 +31,7 @@ const client = new Twitter({
 });
 
 const tweet = string => {
+  console.log('Posting tweet');
   client.post('statuses/update', {status: string}).catch(function(error) {
     throw error;
   });
@@ -51,6 +52,7 @@ const parseTrack = track => ({
 });
 
 const parseXmlResponse = ({data}) => {
+  console.log('Parsing response');
   parseString(data, function(err, result) {
     const {lfm: {recenttracks}} = result;
     const tracksData = recenttracks[0].track;
@@ -74,8 +76,10 @@ const requestUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttrac
   process.env.LASTFM_USER
 }&api_key=${process.env.LASTFM_API_KEY}`;
 
-const requestXml = (req, res) => axios.get(requestUrl).then(parseXmlResponse);
-
+const requestXml = (req, res) => {
+  console.log('Making request');
+  axios.get(requestUrl).then(parseXmlResponse);
+};
 app.get('/', (req, res) => {
   const {auth} = req.query;
   if (auth && auth == process.env.HEADER_AUTH_KEY) {
@@ -85,4 +89,5 @@ app.get('/', (req, res) => {
   }
 });
 
+app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
