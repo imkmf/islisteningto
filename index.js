@@ -46,6 +46,7 @@ const trackWithinLastHour = track => {
   const date = DateTime.fromFormat(track.date, 'dd LLLL yyyy, HH:ss');
   const correctedDate = date.plus({hours: -7});
   const now = DateTime.local();
+  console.log(`Comparing now ${now} and track date ${correctedDate}`);
   const minutesAgo = now.diff(correctedDate, 'minutes');
   return minutesAgo.values.minutes < 30;
 };
