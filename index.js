@@ -5,10 +5,12 @@ const express = require('express');
 const parseString = require('xml2js').parseString;
 const Twitter = require('twitter');
 
+const HOUR_OFFSET = parseInt(process.env.HOUR_OFFSET) || -7;
 const PORT = process.env.PORT || 5000;
 const app = express();
 
 [
+  'process.env.HOUR_OFFSET',
   'process.env.TWITTER_CONSUMER_KEY',
   'process.env.TWITTER_CONSUMER_SECRET',
   'process.env.TWITTER_ACCESS_TOKEN_KEY',
@@ -44,7 +46,7 @@ const tweet = (res, string) => {
 
 const trackWithinLastHour = track => {
   const date = DateTime.fromFormat(track.date, 'dd LLLL yyyy, HH:ss');
-  const correctedDate = date.plus({hours: -7});
+  const correctedDate = date.plus({hours: HOUR_OFFSET});
   const now = DateTime.local();
   console.log(`Comparing now ${now} and track date ${correctedDate}`);
   const minutesAgo = now.diff(correctedDate, 'minutes');
