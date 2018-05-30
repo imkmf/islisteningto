@@ -29,18 +29,22 @@ const client = new Twitter({
   access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
 });
 
-const tweet = string => {
+const tweet = (res, string) => {
   console.log('Posting tweet');
-  client.post('statuses/update', {status: string}).catch(function(error) {
-    throw error;
-  });
+  client
+    .post('statuses/update', {status: string})
+    .then(() => res.sendStatus(200))
+    .catch(function(error) {
+      throw error;
+    });
 };
 
 const trackWithinLastHour = track => {
   const date = DateTime.fromFormat(track.date, 'dd LLLL yyyy, HH:ss');
   const correctedDate = date.plus({hours: -7});
   const now = DateTime.local();
-  return correctedDate.hasSame(now, 'hour');
+  const minutesAgo = now.diff(correctedDate, 'minutes');
+  return minutesAgo.values.minutes < 30;
 };
 
 const parseTrack = track => ({
@@ -50,14 +54,16 @@ const parseTrack = track => ({
   url: track.url[0],
 });
 
-const parseXmlResponse = ({data}) => {
+const parseXmlResponse = (res, {data}) => {
   console.log('Parsing response');
   parseString(data, function(err, result) {
+    console.log('Got result');
     const {lfm: {recenttracks}} = result;
     const tracksData = recenttracks[0].track;
     const tracks = tracksData.map(parseTrack);
     const mostRecentTrack = tracks.find(t => t.date);
     if (trackWithinLastHour(mostRecentTrack)) {
+      console.log('Found new track');
       const artistString = `'${mostRecentTrack.name}' by ${
         mostRecentTrack.artist
       }`.slice(0, 120);
@@ -66,7 +72,9 @@ const parseXmlResponse = ({data}) => {
           ? [artistString.slice(0, 120), '...'].join('')
           : artistString;
       const string = `🎧 ${trimmedString}\n${mostRecentTrack.url}`;
-      tweet(string);
+      tweet(res, string);
+    } else {
+      console.log('New track not found, skipping...');
     }
   });
 };
@@ -77,7 +85,7 @@ const requestUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttrac
 
 const requestXml = (req, res) => {
   console.log('Making request');
-  axios.get(requestUrl).then(parseXmlResponse);
+  axios.get(requestUrl).then(response => parseXmlResponse(res, response));
 };
 app.get('/', (req, res) => {
   const {auth} = req.query;
