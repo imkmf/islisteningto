@@ -5,7 +5,7 @@ const express = require('express');
 const parseString = require('xml2js').parseString;
 const Twitter = require('twitter');
 
-const HOUR_OFFSET = parseInt(process.env.HOUR_OFFSET) || -7;
+const HOUR_OFFSET = parseInt(process.env.HOUR_OFFSET) || -6.5;
 const PORT = process.env.PORT || 5000;
 const app = express();
 
@@ -45,7 +45,7 @@ const tweet = (res, string) => {
 };
 
 const trackWithinLastHour = track => {
-  const date = DateTime.fromFormat(track.date, 'dd LLLL yyyy, HH:ss');
+  const date = DateTime.fromFormat(track.date, 'dd LLL yyyy, HH:ss');
   const correctedDate = date.plus({hours: HOUR_OFFSET});
   const now = DateTime.local();
   console.log(`Comparing now ${now} and track date ${correctedDate}`);
@@ -53,12 +53,14 @@ const trackWithinLastHour = track => {
   return minutesAgo.values.minutes < 30;
 };
 
-const parseTrack = track => ({
-  artist: track.artist[0]._,
-  name: track.name[0],
-  date: track.date ? track.date[0]._ : null,
-  url: track.url[0],
-});
+const parseTrack = track => {
+  return {
+    artist: track.artist[0]._,
+    name: track.name[0],
+    date: track.date ? track.date[0]._ : null,
+    url: track.url[0],
+  };
+};
 
 const parseXmlResponse = (res, {data}) => {
   console.log('Parsing response');
@@ -69,7 +71,8 @@ const parseXmlResponse = (res, {data}) => {
     const tracks = tracksData.map(parseTrack);
     const mostRecentTrack = tracks.find(t => t.date);
     if (trackWithinLastHour(mostRecentTrack)) {
-      console.log('Found new track');
+      console.log(`Found new track`);
+      console.log(mostRecentTrack);
       const artistString = `'${mostRecentTrack.name}' by ${
         mostRecentTrack.artist
       }`.slice(0, 120);
